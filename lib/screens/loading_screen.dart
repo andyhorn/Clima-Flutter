@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
 import '../services/location.dart';
 import 'package:http/http.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-const String kApiBaseUrl = "api.openweathermap.org/data/2.5/weather?";
+const String kApiBaseUrl = "http://api.openweathermap.org/data/2.5/weather";
 
 String makeUrl(double latitude, double longitude) {
-  return "${kApiBaseUrl}lat=${latitude}&lon=${longitude}&appid=${DotEnv().env['OPEN_MAP_API_KEY']}";
+  final apiKey = DotEnv().env['OPEN_WEATHER_API_KEY'];
+  print('using key: $apiKey');
+
+  if (apiKey == null)
+    return null;
+
+  return "$kApiBaseUrl?lat=$latitude&lon=$longitude&appid=$apiKey";
 }
 
 class LoadingScreen extends StatefulWidget {
@@ -16,25 +21,29 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-  Position currentLocation;
+  double _latitude;
+  double _longitude;
 
   Future getLocation() async {
     print('requesting location...');
     final service = Location();
-    final position = await service.getLocation();
-    if (position == null) {
-      print('could not acquire location.');
-    } else {
-      print(position);
-    }
 
-    setState(() {
-      currentLocation = position;
-    });
+    if (await service.getLocation()) {
+      print('location acquired');
+      print('latitude: ${service.latitude}');
+      print('longitude: ${service.longitude}');
+
+      setState(() {
+        _latitude = service.latitude;
+        _longitude = service.longitude;
+      });
+    } else {
+      print('could not acquire location.');
+    }
   }
 
-  void getWeatherData() async {
-    final url = makeUrl(currentLocation.latitude, currentLocation.latitude);
+  Future getWeatherData() async {
+    final url = makeUrl(_latitude, _longitude);
     final data = await get(url);
 
     print(data);
@@ -44,7 +53,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
   void initState()  {
     super.initState();
 
-    getLocation();
+    getLocation().then((erg) {
+      getWeatherData();
+    });
   }
 
   @override
