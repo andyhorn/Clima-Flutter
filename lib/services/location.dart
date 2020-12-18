@@ -1,9 +1,13 @@
 import 'package:geolocator/geolocator.dart';
 
 class Location {
-  Future<Position> getLocation() async {
-    final doesHavePermission = await hasPermission();
-    if (!doesHavePermission) {
+  double latitude = 0.0;
+  double longitude = 0.0;
+
+  Future getLocation() async {
+    final hasUserPermission = await hasPermission();
+
+    if (!hasUserPermission) {
       return null;
     }
 
@@ -14,10 +18,11 @@ class Location {
         timeLimit: Duration(seconds: 15)
       );
 
-      return position;
+      this.latitude = position.latitude;
+      this.longitude = position.longitude;
     } catch (e) {
+      print('error acquiring permission:');
       print(e);
-      return null;
     }
   }
 

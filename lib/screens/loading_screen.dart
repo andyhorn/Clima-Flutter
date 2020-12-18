@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../services/location.dart';
+import 'package:http/http.dart';
+
+const String kApiKey = "d59e9664b0bea35133598dc05f12fe10";
+const String kApiBaseUrl = "api.openweathermap.org/data/2.5/weather?";
+
+String makeUrl(double latitude, double longitude) {
+  return "${kApiBaseUrl}lat=${latitude}&lon=${longitude}&appid=$kApiKey";
+}
 
 class LoadingScreen extends StatefulWidget {
   @override
@@ -7,6 +16,8 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
+  Position currentLocation;
+
   Future getLocation() async {
     print('requesting location...');
     final service = Location();
@@ -16,6 +27,22 @@ class _LoadingScreenState extends State<LoadingScreen> {
     } else {
       print(position);
     }
+
+    setState(() {
+      currentLocation = position;
+    });
+  }
+
+  void getWeatherData() async {
+    final url = makeUrl(currentLocation.latitude, currentLocation.latitude);
+    final data = await get(url);
+  }
+
+  @override
+  void initState()  {
+    super.initState();
+
+    getLocation();
   }
 
   @override
@@ -25,7 +52,6 @@ class _LoadingScreenState extends State<LoadingScreen> {
         child: RaisedButton(
           onPressed: () async {
             //Get the current location
-            await getLocation();
           },
           child: Text('Get Location'),
         ),
