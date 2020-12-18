@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../services/location.dart';
 import 'package:http/http.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-const String kApiKey = "d59e9664b0bea35133598dc05f12fe10";
 const String kApiBaseUrl = "api.openweathermap.org/data/2.5/weather?";
 
 String makeUrl(double latitude, double longitude) {
-  return "${kApiBaseUrl}lat=${latitude}&lon=${longitude}&appid=$kApiKey";
+  return "${kApiBaseUrl}lat=${latitude}&lon=${longitude}&appid=${DotEnv().env['OPEN_MAP_API_KEY']}";
 }
 
 class LoadingScreen extends StatefulWidget {
@@ -36,6 +36,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
   void getWeatherData() async {
     final url = makeUrl(currentLocation.latitude, currentLocation.latitude);
     final data = await get(url);
+
+    print(data);
   }
 
   @override
