@@ -7,7 +7,7 @@ import '../utilities/constants.dart' as constants;
 class NetworkHelper {
   Future<dynamic> getLocationData(double latitude, double longitude) async {
     final String apiKey = DotEnv().env['OPEN_WEATHER_API_KEY'];
-    final String uri = "${constants.kApiBaseUri}?lat=$latitude&lon=$longitude&appid=$apiKey";
+    final String uri = "${constants.kApiBaseUri}?lat=$latitude&lon=$longitude&units=standard&appid=$apiKey";
 
     final http.Response response = await http.get(uri);
 

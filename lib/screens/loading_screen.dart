@@ -27,16 +27,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
       _longitude = service.longitude;
 
       final dynamic weatherData = await networkHelper.getLocationData(_latitude, _longitude);
-      final int conditionId = weatherData['weather'][0]['id'];
-      final double temperature = weatherData['main']['temp'];
-      final String cityName = weatherData['name'];
-
-      print('condition ID: $conditionId');
-      print('temperature: $temperature');
-      print('city: $cityName');
 
       Navigator.push(context, MaterialPageRoute(builder: (context) {
-        return LocationScreen();
+        return LocationScreen(locationWeather: weatherData,);
       }));
     } else {
       print('could not acquire location.');
