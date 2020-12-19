@@ -19,4 +19,5 @@ const kConditionTextStyle = TextStyle(
   fontSize: 100.0,
 );
 
-const kApiBaseUri = "http://api.openweathermap.org/data/2.5/weather";
+const kApiBaseUri = 'http://api.openweathermap.org/data/2.5/weather';
+const kTempUnits = ['C', 'F'];

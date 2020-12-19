@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:clima/services/weather.dart';
 import 'package:clima/utilities/constants.dart';
 import 'package:clima/utilities/converters.dart' as converters;
-
-const kTempUnits = ["K", "C", "F"];
+import 'package:clima/utilities/constants.dart';
 
 class LocationScreen extends StatefulWidget {
   final locationWeather;
@@ -19,9 +19,11 @@ class _LocationScreenState extends State<LocationScreen> {
   double _tempK;
   int _tempF;
   int _tempC;
+  int _tempUnitIndex = 0;
   String _icon;
   String _message;
   String _tempUnit;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -34,17 +36,19 @@ class _LocationScreenState extends State<LocationScreen> {
     final int conditionId = weatherData['weather'][0]['id'];
     final double temperature = weatherData['main']['temp'];
     final String cityName = weatherData['name'];
+
     final double tempC = converters.kelvinToCelsius(temperature);
     final double tempF = converters.kelvinToFahrenheit(temperature);
     final String weatherMessage = _weatherModel.getMessage(tempC.toInt());
 
     setState(() {
+      _tempUnitIndex = kTempUnits.indexOf('F');
       _tempK = temperature;
       _tempC = tempC.round();
       _tempF = tempF.round();
       _icon = _weatherModel.getWeatherIcon(conditionId);
       _message = '$weatherMessage in $cityName';
-      _tempUnit = "F";
+      _tempUnit = kTempUnits[_tempUnitIndex];
     });
   }
 
@@ -70,11 +74,26 @@ class _LocationScreenState extends State<LocationScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   FlatButton(
-                    onPressed: () {},
-                    child: Icon(
-                      Icons.near_me,
-                      size: 50.0,
-                    ),
+                    onPressed: () async {
+                      setState(() {
+                        _isLoading = true;
+                      });
+                      final dynamic weatherData =
+                          await _weatherModel.getLocationWeather();
+                      updateWeatherData(weatherData);
+                      setState(() {
+                        _isLoading = false;
+                      });
+                    },
+                    child: _isLoading
+                        ? SpinKitRipple(
+                            color: Colors.white,
+                            size: 50.0,
+                          )
+                        : Icon(
+                            Icons.near_me,
+                            size: 50.0,
+                          ),
                   ),
                   FlatButton(
                     onPressed: () {},
@@ -88,14 +107,49 @@ class _LocationScreenState extends State<LocationScreen> {
               Padding(
                 padding: EdgeInsets.only(left: 15.0),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Text(
-                      '$_tempF°',
-                      style: kTempTextStyle,
+                    Row(
+                      textBaseline: TextBaseline.alphabetic,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      children: [
+                        Text(
+                          _tempUnit == 'K'
+                              ? _tempK.toString()
+                              : _tempUnit == 'C'
+                                  ? _tempC.toString()
+                                  : _tempF.toString(),
+                          style: kTempTextStyle,
+                        ),
+                        Text(
+                          '°',
+                          style: kTempTextStyle,
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _tempUnitIndex =
+                                  _tempUnitIndex == kTempUnits.length - 1
+                                      ? _tempUnitIndex = 0
+                                      : _tempUnitIndex + 1;
+                              _tempUnit = kTempUnits[_tempUnitIndex];
+                            });
+                          },
+                          child: Text(
+                            _tempUnit,
+                            style: kTempTextStyle.copyWith(
+                              fontSize: 50.0,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    Text(
-                      _icon,
-                      style: kConditionTextStyle,
+                    Center(
+                      child: Text(
+                        _icon,
+                        style: kConditionTextStyle,
+                      ),
                     ),
                   ],
                 ),
