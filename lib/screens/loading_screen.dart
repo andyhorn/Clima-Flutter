@@ -1,19 +1,8 @@
+import 'package:clima/screens/location_screen.dart';
+import 'package:clima/services/networking.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import '../services/location.dart';
-import 'package:http/http.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
-const String kApiBaseUrl = "http://api.openweathermap.org/data/2.5/weather";
-
-String makeUrl(double latitude, double longitude) {
-  final apiKey = DotEnv().env['OPEN_WEATHER_API_KEY'];
-  print('using key: $apiKey');
-
-  if (apiKey == null)
-    return null;
-
-  return "$kApiBaseUrl?lat=$latitude&lon=$longitude&appid=$apiKey";
-}
 
 class LoadingScreen extends StatefulWidget {
   @override
@@ -21,10 +10,11 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
+  final NetworkHelper networkHelper = NetworkHelper();
   double _latitude;
   double _longitude;
 
-  Future getLocation() async {
+  Future getLocationData() async {
     print('requesting location...');
     final service = Location();
 
@@ -33,42 +23,47 @@ class _LoadingScreenState extends State<LoadingScreen> {
       print('latitude: ${service.latitude}');
       print('longitude: ${service.longitude}');
 
-      setState(() {
-        _latitude = service.latitude;
-        _longitude = service.longitude;
-      });
+      _latitude = service.latitude;
+      _longitude = service.longitude;
+
+      final dynamic weatherData = await networkHelper.getLocationData(_latitude, _longitude);
+      final int conditionId = weatherData['weather'][0]['id'];
+      final double temperature = weatherData['main']['temp'];
+      final String cityName = weatherData['name'];
+
+      print('condition ID: $conditionId');
+      print('temperature: $temperature');
+      print('city: $cityName');
+
+      Navigator.push(context, MaterialPageRoute(builder: (context) {
+        return LocationScreen();
+      }));
     } else {
       print('could not acquire location.');
     }
   }
 
-  Future getWeatherData() async {
-    final url = makeUrl(_latitude, _longitude);
-    final data = await get(url);
-
-    print(data);
-  }
-
   @override
   void initState()  {
     super.initState();
-
-    getLocation().then((erg) {
-      getWeatherData();
-    });
+    getLocationData();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: RaisedButton(
-          onPressed: () async {
-            //Get the current location
-          },
-          child: Text('Get Location'),
-        ),
-      ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SpinKitRipple(
+              color: Colors.white,
+              size: 75.0,
+            ),
+            Text("retrieving local weather data..."),
+          ]
+        )
+      )
     );
   }
 }
