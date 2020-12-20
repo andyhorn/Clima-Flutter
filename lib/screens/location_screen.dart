@@ -1,3 +1,4 @@
+import 'package:clima/screens/city_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:clima/services/weather.dart';
@@ -96,7 +97,16 @@ class _LocationScreenState extends State<LocationScreen> {
                           ),
                   ),
                   FlatButton(
-                    onPressed: () {},
+                    onPressed: () async {
+                      final String cityName = await Navigator.push(context,
+                          MaterialPageRoute(builder: (context) {
+                        return CityScreen();
+                      }));
+
+                      final dynamic weatherData =
+                          await _weatherModel.getCityWeather(cityName);
+                      updateWeatherData(weatherData);
+                    },
                     child: Icon(
                       Icons.location_city,
                       size: 50.0,
@@ -126,20 +136,23 @@ class _LocationScreenState extends State<LocationScreen> {
                           '°',
                           style: kTempTextStyle,
                         ),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _tempUnitIndex =
-                                  _tempUnitIndex == kTempUnits.length - 1
-                                      ? _tempUnitIndex = 0
-                                      : _tempUnitIndex + 1;
-                              _tempUnit = kTempUnits[_tempUnitIndex];
-                            });
-                          },
-                          child: Text(
-                            _tempUnit,
-                            style: kTempTextStyle.copyWith(
-                              fontSize: 50.0,
+                        Container(
+                          transform: Matrix4.translationValues(-20.0, 0, 0),
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _tempUnitIndex =
+                                    _tempUnitIndex == kTempUnits.length - 1
+                                        ? _tempUnitIndex = 0
+                                        : _tempUnitIndex + 1;
+                                _tempUnit = kTempUnits[_tempUnitIndex];
+                              });
+                            },
+                            child: Text(
+                              _tempUnit,
+                              style: kTempTextStyle.copyWith(
+                                fontSize: 50.0,
+                              ),
                             ),
                           ),
                         ),
