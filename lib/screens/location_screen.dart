@@ -103,6 +103,8 @@ class _LocationScreenState extends State<LocationScreen> {
                         return CityScreen();
                       }));
 
+                      if (cityName.isEmpty) return;
+
                       final dynamic weatherData =
                           await _weatherModel.getCityWeather(cityName);
                       updateWeatherData(weatherData);
